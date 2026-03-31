@@ -1,0 +1,51 @@
+context:
+  version: "3.4.1"
+
+package:
+  name: dasel
+  version: ${{ version }}
+
+source:
+  url: https://github.com/TomWright/dasel/archive/refs/tags/v${{ version }}.tar.gz
+  sha256: 7fb73efd7378a784ce5cda960930ef8da01a9966e42ecc8904713a18b65e8f1a
+  target_directory: src
+
+build:
+  number: 0
+  script:
+    - cd src
+    - go-licenses save . --save_path ../library_licenses
+    - if: unix
+      then: go build -v -o $PREFIX/bin/dasel -ldflags="-s -w -X github.com/tomwright/dasel/v3/internal.Version=v${{ version }}" ./cmd/dasel
+      else: go build -v -o %LIBRARY_BIN%\dasel.exe -ldflags="-s -X github.com/tomwright/dasel/v3/internal.Version=v${{ version }}" ./cmd/dasel
+
+requirements:
+  build:
+    - ${{ compiler("go-nocgo") }}
+    - go-licenses
+
+tests:
+  - script:
+      - dasel --help
+      - dasel version
+  - package_contents:
+      bin:
+        - dasel
+      strict: true
+
+about:
+  homepage: https://github.com/TomWright/dasel
+  summary: Query and modify data structures from the command line.
+  description: |
+    Select, put and delete data from JSON, TOML, YAML, XML and CSV files with a single
+    tool. Supports conversion between formats and can be used as a Go package.
+  license: MIT
+  license_file:
+    - src/LICENSE
+    - library_licenses/
+  repository: https://github.com/TomWright/dasel
+
+extra:
+  recipe-maintainers:
+    - tomwright
+    - maresb
